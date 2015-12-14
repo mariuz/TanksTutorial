@@ -39,11 +39,46 @@ public class TankShooting : MonoBehaviour
     private void Update()
     {
         // Track the current state of the fire button and make decisions based on the current launch force.
+		m_AimSlider.value = m_MinLaunchForce;
+		if (m_CurrentLaunchForce >= m_MaxLaunchForce && !m_Fired) 
+		{
+			// at max charge , not fired
+			m_CurrentLaunchForce = m_MaxLaunchForce;
+			Fire ();
+		} 
+		else if (Input.GetButtonDown (m_FireButton)) 
+		{	
+			// press fire for first time
+			m_Fired = false;
+			m_CurrentLaunchForce = m_MinLaunchForce;
+			m_ShootingAudio.clip = m_ChargingClip;
+			m_ShootingAudio.Play ();
+		} 
+		else if (Input.GetButtonDown (m_FireButton) && !m_Fired) 
+		{ 
+			// press fire , not yet fired
+			m_CurrentLaunchForce += m_ChargeSpeed * Time.deltaTime;
+			m_AimSlider.value = m_CurrentLaunchForce;
+		}
+		else if (Input.GetButtonUp (m_FireButton) && !m_Fired) 
+		{ 
+			// release fire button up, not yet fired
+			Fire ();
+		}
     }
 
 
     private void Fire()
     {
         // Instantiate and launch the shell.
+		m_Fired = true;
+		Rigidbody shellInstance = Instantiate (m_Shell, m_FireTransform.position, m_FireTransform.rotation) as Rigidbody;
+		shellInstance.velocity = m_CurrentLaunchForce * m_FireTransform.forward;
+
+		m_ShootingAudio.clip = m_FireClip;
+		m_ShootingAudio.Play ();
+
+		m_CurrentLaunchForce = m_MinLaunchForce;
+
     }
 }
